@@ -137,6 +137,30 @@ describe('runner', function() {
             });
         });
 
+        it('should emit `beginSession` before session start', function() {
+            var onBeginSession = this.sinon.spy().named('onBeginSession');
+
+            this.runner.on('beginSession', onBeginSession);
+
+            return this.runSuites().then(function() {
+                assert.calledOnce(onBeginSession);
+            });
+        });
+
+        it('should wait for all `begin session` listeners to complete before proceed', function() {
+            var onBeginSession = this.sinon.stub().named('onBeginSession'),
+                onBeginSessionCallback = this.sinon.spy().named('onBeginSessionCallback'),
+                onStartBrowser = this.sinon.spy().named('onStartBrowser');
+
+            onBeginSession.returns(q.delay(100).then(onBeginSessionCallback));
+            this.runner.on('beginSession', onBeginSession);
+            this.runner.on('startBrowser', onStartBrowser);
+
+            return this.runSuites().then(function() {
+                assert(onBeginSessionCallback.calledBefore(onStartBrowser));
+            });
+        });
+
         it('should launch each browser in config if testBrowsers are not set', function() {
             this.sinon.stub(this.runner.config, 'getBrowserIds')
                 .returns(['browser1', 'browser2']);
@@ -450,6 +474,31 @@ describe('runner', function() {
             });
         });
 
+        it('should emit `endSession` before ending session', function() {
+            var onEndSession = this.sinon.spy().named('onEndSession');
+
+            this.runner.on('endSession', onEndSession);
+
+            return this.runSuites().then(function() {
+                assert.calledOnce(onEndSession);
+            });
+        });
+
+        it('should wait for all `endSession` listeners to complete before proceeding', function() {
+            var onEndSession = this.sinon.stub().named('onEndSession'),
+                onEnd = this.sinon.stub().named('onEnd'),
+                endSessionCallback = this.sinon.spy().named('endSessionCallback');
+
+            onEndSession.returns(q.delay(100).then(endSessionCallback));
+
+            this.runner.on('endSession', onEndSession);
+            this.runner.on('end', onEnd);
+
+            return this.runSuites().then(function() {
+                assert(endSessionCallback.calledBefore(onEnd));
+            });
+        });
+
         it('should emit `end` after all suites', function() {
             var spy = this.sinon.spy();
             this.runner.on('end', spy);
@@ -460,34 +509,40 @@ describe('runner', function() {
 
         it('should emit events in correct order', function() {
             var begin = this.sinon.spy().named('onBegin'),
+                beginSession = this.sinon.spy().named('onBeginSession'),
                 startBrowser = this.sinon.spy().named('onStartBrowser'),
                 beginSuite = this.sinon.spy().named('onBeginSuite'),
                 beginState = this.sinon.spy().named('onBeginState'),
                 endState = this.sinon.spy().named('onEndState'),
                 endSuite = this.sinon.spy().named('onEndSuite'),
                 stopBrowser = this.sinon.spy().named('onStartBrowser'),
+                endSession = this.sinon.spy().named('onEndSession'),
                 end = this.sinon.spy().named('onEnd');
 
             addState(this.suite, 'state');
 
             this.runner.on('begin', begin);
+            this.runner.on('beginSession', beginSession);
             this.runner.on('startBrowser', startBrowser);
             this.runner.on('beginSuite', beginSuite);
             this.runner.on('beginState', beginState);
             this.runner.on('endState', endState);
             this.runner.on('endSuite', endSuite);
             this.runner.on('stopBrowser', stopBrowser);
+            this.runner.on('endSession', endSession);
             this.runner.on('end', end);
 
             return this.runSuites().then(function() {
                 assert.callOrder(
                     begin,
+                    beginSession,
                     startBrowser,
                     beginSuite,
                     beginState,
                     endState,
                     endSuite,
                     stopBrowser,
+                    endSession,
                     end
                 );
             });

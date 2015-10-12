@@ -199,7 +199,7 @@ describe('public tests API', function() {
                 }.bind(this), TypeError);
             });
 
-            it('should throw if argument is not a string', function() {
+            it('should set tolerance passed as number', function() {
                 this.context.suite('name', function(suite) {
                     suite.setTolerance(25);
                 });
@@ -207,6 +207,41 @@ describe('public tests API', function() {
             });
 
             shouldBeChainable('setTolerance', 25);
+        });
+
+        describe('setRetries', function() {
+            it('should throw if argument is not a number', function() {
+                assert.throws(function() {
+                    this.context.suite('name', function(suite) {
+                        suite.setRetries('so much wow');
+                    });
+                }.bind(this), TypeError);
+            });
+
+            it('should throw if argument is not integer', function() {
+                assert.throws(function() {
+                    this.context.suite('name', function(suite) {
+                        suite.setRetries(3.5);
+                    });
+                }.bind(this), TypeError);
+            });
+
+            it('should throw if argument is negative number', function() {
+                assert.throws(function() {
+                    this.context.suite('name', function(suite) {
+                        suite.setRetries(-1);
+                    }.bind(this), TypeError);
+                });
+            });
+
+            it('should set passed retries for suite', function() {
+                this.context.suite('name', function(suite) {
+                    suite.setRetries(10);
+                });
+                assert.equal(this.suite.children[0].retries, 10);
+            });
+
+            shouldBeChainable('setRetries', 10);
         });
 
         function testSelectorListProperty(method, property) {

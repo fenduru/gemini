@@ -6,8 +6,9 @@
                 {{#if skipped}}
                     <div class="section__title">[skipped] {{name}}</div>
                 {{/if}}
+
                 {{#unless skipped}}
-                    <div class="section__title">{{name}}</div>
+                    <div class="section__title">{{#if retry}}[retry] retries left: {{retriesLeft}}{{/if}} {{name}}</div>
                     <div class="section__body">
                         {{#if error}}
                             <pre class="reason">{{{reason}}}</pre>
@@ -35,7 +36,7 @@
                                 </div>
                             </div>
                         {{/if}}
-                        {{#if fail}}
+                        {{#ifCond fail '||' retry}}
                             <div class="image-box">
                                 <div class="image-box__image">
                                     <div class="image-box__title">Expected</div>
@@ -50,8 +51,7 @@
                                     {{image "diff"}}
                                 </div>
                             </div>
-
-                        {{/if}}
+                        {{/ifCond}}
                     </div>
                 {{/unless}}
 

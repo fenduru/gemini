@@ -97,6 +97,11 @@
     content: none;
 }
 
+.section_status_retry > .section__title,
+.section_status_retry > .section__title:hover {
+    color: #0099FF;
+}
+
 .section__title:hover {
     color: #2D3E50;
 }

@@ -163,6 +163,31 @@ describe('test-reader', function() {
             });
     });
 
+    it('should set default retries count for root suite', function() {
+        var config = {
+                system: {
+                    suiteRetries: 56
+                },
+                sets: {
+                    all: {
+                        files: ['some/path'],
+                        browsers: ['b1']
+                    }
+                }
+            },
+            rootSuite;
+
+        pathUtils.expandPaths
+            .withArgs(['some/path']).returns(q(['/some/path/file.js']));
+
+        return readTests_({config: config})
+            .then(function() {
+                rootSuite = exposeTestsApi.lastCall.args[1];
+
+                assert.equal(rootSuite.retries, 56);
+            });
+    });
+
     it('should configure suite for certain browsers', function() {
         var config = {
             sets: {

@@ -18,7 +18,8 @@ describe('Reporter#Flat', function() {
             total: chalk.stripColor(args[1]),
             passed: chalk.stripColor(args[2]),
             failed: chalk.stripColor(args[3]),
-            skipped: chalk.stripColor(args[4])
+            skipped: chalk.stripColor(args[4]),
+            retries: chalk.stripColor(args[5])
         };
     }
 
@@ -34,7 +35,8 @@ describe('Reporter#Flat', function() {
         test = {
             suite: {path: []},
             state: {name: 'test'},
-            browserId: 0
+            browserId: 0,
+            retriesLeft: 1
         };
 
         var reporter = new FlatReporter();
@@ -58,6 +60,7 @@ describe('Reporter#Flat', function() {
         assert.equal(counters.passed, 0);
         assert.equal(counters.failed, 0);
         assert.equal(counters.skipped, 0);
+        assert.equal(counters.retries, 0);
     });
 
     describe('should correctly calculate counters for', function() {
@@ -101,6 +104,14 @@ describe('Reporter#Flat', function() {
                 assert.equal(counters.total, 1);
                 assert.equal(counters.skipped, 1);
             });
+        });
+
+        it('retry', function() {
+            emit(RunnerEvents.RETRY, test);
+
+            var counters = getCounters(logger.log.lastCall.args);
+
+            assert.equal(counters.retries, 1);
         });
     });
 
